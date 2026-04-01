@@ -33,16 +33,16 @@
     }
     .layout {
       display: grid;
-      grid-template-columns: 1fr 1.55fr 1fr;
-      gap: 24px;
+      grid-template-columns: 0.82fr 1.95fr 0.82fr;
+      gap: 20px;
       align-items: start;
     }
     .panel {
       background: #f8fafc;
       border: 1px solid #e5e7eb;
       border-radius: 20px;
-      padding: 20px;
-      min-height: 520px;
+      padding: 18px;
+      min-height: 500px;
     }
     .left-panel { display: flex; flex-direction: column; gap: 16px; }
     .shape-option {
@@ -74,9 +74,9 @@
     .feature-box, .info-box, .metrics {
       background: white;
       border-radius: 16px;
-      padding: 16px;
+      padding: 14px;
       border: 1px solid #e5e7eb;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.55;
       color: #334155;
     }
@@ -86,8 +86,9 @@
       align-items: center;
       justify-content: flex-start;
       overflow: hidden;
+      min-height: 620px;
     }
-    svg { width: 100%; height: 460px; }
+    svg { width: 100%; height: 560px; }
     .node {
       fill: white;
       stroke: #94a3b8;
@@ -104,13 +105,22 @@
     .edge.active { stroke: #2563eb; stroke-width: 4; }
     .edge.strong { stroke: #0f766e; stroke-width: 3; }
     .edge.negative { stroke: #ef4444; }
-    .right-panel { display: flex; flex-direction: column; gap: 16px; }
+    .weight-label {
+      font-size: 11px;
+      fill: #0f172a;
+      paint-order: stroke;
+      stroke: #f8fafc;
+      stroke-width: 4px;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+    .right-panel { display: flex; flex-direction: column; gap: 12px; }
     .output-item {
       background: white;
       border: 2px solid #e5e7eb;
       border-radius: 18px;
-      padding: 18px;
-      font-size: 22px;
+      padding: 14px;
+      font-size: 19px;
       font-weight: 700;
       text-align: center;
       transition: all 0.3s ease;
@@ -266,16 +276,16 @@
           <circle id="n9" class="node" cx="625" cy="225" r="26"></circle>
           <circle id="n10" class="node" cx="625" cy="340" r="26"></circle>
 
-          <text x="54" y="48" font-size="18" font-weight="bold" fill="#475569">Eingabe</text>
-          <text x="292" y="48" font-size="18" font-weight="bold" fill="#475569">Hidden</text>
-          <text x="588" y="48" font-size="18" font-weight="bold" fill="#475569">Softmax</text>
+          <text x="85" y="48" text-anchor="middle" font-size="18" font-weight="bold" fill="#475569">Eingabe</text>
+          <text x="335" y="48" text-anchor="middle" font-size="18" font-weight="bold" fill="#475569">Hidden</text>
+          <text x="625" y="48" text-anchor="middle" font-size="18" font-weight="bold" fill="#475569">Softmax</text>
 
           <text x="38" y="110" font-size="12" font-weight="bold" fill="#0f172a">E1</text>
           <text x="38" y="230" font-size="12" font-weight="bold" fill="#0f172a">E2</text>
           <text x="38" y="350" font-size="12" font-weight="bold" fill="#0f172a">E3</text>
-          <text x="611" y="115" font-size="12" font-weight="bold" fill="#0f172a">T</text>
-          <text x="611" y="230" font-size="12" font-weight="bold" fill="#0f172a">K</text>
-          <text x="610" y="345" font-size="12" font-weight="bold" fill="#0f172a">Q</text>
+          <text x="625" y="115" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">T</text>
+          <text x="625" y="230" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">K</text>
+          <text x="625" y="345" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">Q</text>
 
           <text id="v-n1" x="68" y="145" font-size="11" fill="#0f172a">0.00</text>
           <text id="v-n2" x="68" y="265" font-size="11" fill="#0f172a">0.00</text>
@@ -288,31 +298,34 @@
           <text id="v-n9" x="607" y="265" font-size="11" fill="#0f172a">0.33</text>
           <text id="v-n10" x="607" y="380" font-size="11" fill="#0f172a">0.33</text>
 
-          <text id="w-e1" x="198" y="82" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e2" x="198" y="122" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e3" x="198" y="173" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e4" x="198" y="225" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e5" x="198" y="146" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e6" x="198" y="198" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e7" x="198" y="242" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e8" x="198" y="290" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e9" x="198" y="248" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e10" x="198" y="292" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e11" x="198" y="336" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e12" x="198" y="380" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e13" x="472" y="86" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e14" x="472" y="155" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e15" x="472" y="225" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e16" x="472" y="134" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e17" x="472" y="200" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e18" x="472" y="270" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e19" x="472" y="180" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e20" x="472" y="245" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e21" x="472" y="314" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e22" x="472" y="270" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e23" x="472" y="334" font-size="11" fill="#0f172a">0.00</text>
-          <text id="w-e24" x="472" y="396" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e1" class="weight-label" x="205" y="68">0.00</text>
+          <text id="w-e2" class="weight-label" x="218" y="118">0.00</text>
+          <text id="w-e3" class="weight-label" x="222" y="172">0.00</text>
+          <text id="w-e4" class="weight-label" x="224" y="228">0.00</text>
+          <text id="w-e5" class="weight-label" x="170" y="136">0.00</text>
+          <text id="w-e6" class="weight-label" x="180" y="188">0.00</text>
+          <text id="w-e7" class="weight-label" x="186" y="245">0.00</text>
+          <text id="w-e8" class="weight-label" x="194" y="300">0.00</text>
+          <text id="w-e9" class="weight-label" x="152" y="246">0.00</text>
+          <text id="w-e10" class="weight-label" x="162" y="295">0.00</text>
+          <text id="w-e11" class="weight-label" x="172" y="345">0.00</text>
+          <text id="w-e12" class="weight-label" x="185" y="394">0.00</text>
+          <text id="w-e13" class="weight-label" x="456" y="84">0.00</text>
+          <text id="w-e14" class="weight-label" x="442" y="147">0.00</text>
+          <text id="w-e15" class="weight-label" x="430" y="206">0.00</text>
+          <text id="w-e16" class="weight-label" x="470" y="145">0.00</text>
+          <text id="w-e17" class="weight-label" x="464" y="201">0.00</text>
+          <text id="w-e18" class="weight-label" x="458" y="258">0.00</text>
+          <text id="w-e19" class="weight-label" x="488" y="206">0.00</text>
+          <text id="w-e20" class="weight-label" x="486" y="252">0.00</text>
+          <text id="w-e21" class="weight-label" x="482" y="307">0.00</text>
+          <text id="w-e22" class="weight-label" x="510" y="273">0.00</text>
+          <text id="w-e23" class="weight-label" x="510" y="326">0.00</text>
+          <text id="w-e24" class="weight-label" x="510" y="381">0.00</text>
         </svg>
+        <div style="margin-top: 12px; display: flex; justify-content: center; width: 100%;">
+          <button id="recognizeBtn" type="button">Erkennen</button>
+        </div>
         <div class="legend">Kreise = Aktivierungen. Linien = Gewichte. Grüne Gewichte fördern, rote Gewichte hemmen. Die drei Ausgabewerte werden per Softmax in Wahrscheinlichkeiten umgerechnet.</div>
       </div>
 
@@ -352,10 +365,9 @@
         <button id="train1Btn" type="button">1× trainieren</button>
         <button id="train10Btn" type="button">10× trainieren</button>
         <button id="train100Btn" type="button">100× trainieren</button>
+        <button id="resetBtn" type="button" style="background:#ef4444; box-shadow: 0 10px 24px rgba(239,68,68,0.28);">Vergessen</button>
       </div>
-      <div>
-        <button id="recognizeBtn" type="button">Erkennen</button>
-      </div>
+      
     </div>
     <div id="status" class="status">Das Netz startet untrainiert. Durch Training werden Gewichte und Bias-Werte per Gradientenabstieg angepasst.</div>
   </div>
@@ -368,6 +380,7 @@
     const train1Btn = document.getElementById('train1Btn');
     const train10Btn = document.getElementById('train10Btn');
     const train100Btn = document.getElementById('train100Btn');
+    const resetBtn = document.getElementById('resetBtn');
     const featureBox = document.getElementById('featureBox');
     const metricsBox = document.getElementById('metricsBox');
     const tempSlider = document.getElementById('tempSlider');
@@ -386,23 +399,27 @@
       square:   { x: [0.82, 0.12, 0.98], y: [0, 0, 1] }
     };
 
-    const net = {
-      lr: 0.18,
-      trainCount: 0,
-      wIH: [
-        [0.06, -0.03, 0.05, 0.02],
-        [-0.04, 0.05, 0.02, 0.03],
-        [0.01, 0.02, -0.02, 0.04]
-      ],
-      bH: [0, 0, 0, 0],
-      wHO: [
-        [0.05, -0.03, 0.01],
-        [-0.02, 0.04, 0.01],
-        [0.03, 0.01, -0.02],
-        [0.02, 0.01, 0.03]
-      ],
-      bO: [0, 0, 0]
-    };
+    function createInitialNet() {
+      return {
+        lr: 0.18,
+        trainCount: 0,
+        wIH: [
+          [0.06, -0.03, 0.05, 0.02],
+          [-0.04, 0.05, 0.02, 0.03],
+          [0.01, 0.02, -0.02, 0.04]
+        ],
+        bH: [0, 0, 0, 0],
+        wHO: [
+          [0.05, -0.03, 0.01],
+          [-0.02, 0.04, 0.01],
+          [0.03, 0.01, -0.02],
+          [0.02, 0.01, 0.03]
+        ],
+        bO: [0, 0, 0]
+      };
+    }
+
+    let net = createInitialNet();
 
     function sigmoid(x) {
       return 1 / (1 + Math.exp(-x));
@@ -640,6 +657,12 @@
     train10Btn.addEventListener('click', () => trainNetwork(10));
     train100Btn.addEventListener('click', () => trainNetwork(100));
     recognizeBtn.addEventListener('click', runRecognition);
+
+    resetBtn.addEventListener('click', () => {
+      net = createInitialNet();
+      updateVisuals();
+      statusEl.textContent = 'Netz zurückgesetzt (vergessen).';
+    });
 
     updateSelectedCard();
     updateVisuals();
