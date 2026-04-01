@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neuronales Netz mit Softmax für Formen</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .app {
+      width: min(1240px, 100%);
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+      padding: 32px;
+    }
+    h1 { margin: 0 0 10px; text-align: center; font-size: 30px; }
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1.55fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    .panel {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      padding: 20px;
+      min-height: 520px;
+    }
+    .left-panel { display: flex; flex-direction: column; gap: 16px; }
+    .shape-option {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      background: white;
+      border-radius: 16px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .shape-option:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+    }
+    .shape-option.selected { border-color: #2563eb; }
+    .shape-preview {
+      width: 110px;
+      height: 110px;
+      background: #eef2ff;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .feature-box, .info-box, .metrics {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #334155;
+    }
+    .network-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
+    svg { width: 100%; height: 460px; }
+    .node {
+      fill: white;
+      stroke: #94a3b8;
+      stroke-width: 2;
+      transition: fill 0.3s ease, stroke 0.3s ease;
+    }
+    .node.active { fill: #dbeafe; stroke: #2563eb; }
+    .node.output-active { fill: #dcfce7; stroke: #16a34a; }
+    .edge {
+      stroke: #cbd5e1;
+      stroke-width: 2;
+      transition: stroke 0.3s ease, stroke-width 0.3s ease;
+    }
+    .edge.active { stroke: #2563eb; stroke-width: 4; }
+    .edge.strong { stroke: #0f766e; stroke-width: 3; }
+    .edge.negative { stroke: #ef4444; }
+    .right-panel { display: flex; flex-direction: column; gap: 16px; }
+    .output-item {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 18px;
+      font-size: 22px;
+      font-weight: 700;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .output-item small {
+      display: block;
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+    }
+    .output-item.active {
+      border-color: #16a34a;
+      background: #f0fdf4;
+      color: #166534;
+      transform: scale(1.02);
+    }
+    .bottom { display: flex; justify-content: center; margin-top: 28px; }
+    .temperature-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: min(360px, 100%);
+    }
+    .temperature-wrap input { width: 100%; }
+    button {
+      border: none;
+      background: #2563eb;
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+      padding: 14px 26px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
+    }
+    button:hover { background: #1d4ed8; transform: translateY(-2px); }
+    .status {
+      text-align: center;
+      margin-top: 14px;
+      min-height: 24px;
+      color: #475569;
+      font-size: 15px;
+    }
+    .legend {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+    }
+    .prob-row { margin-top: 8px; display: grid; gap: 8px; }
+    .prob-bar {
+      width: 100%;
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .prob-fill {
+      height: 100%;
+      background: #2563eb;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    @media (max-width: 1020px) {
+      .layout { grid-template-columns: 1fr; }
+      .panel { min-height: auto; }
+      svg { height: 420px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Neuronales Netz mit Softmax für Formen</h1>
+    <div class="subtitle">3 Eingabefeatures, 4 Hidden-Neuronen, 3 Ausgabeneuronen und Entscheidung per <strong>Softmax</strong>. Die Temperatur beeinflusst die Verteilung, die Erkennung selbst nutzt wieder das wahrscheinlichste Ergebnis.</div>
+
+    <div class="layout">
+      <div class="panel left-panel">
+        <label class="shape-option selected" data-shape="triangle">
+          <input type="radio" name="shape" value="triangle" checked />
+          <div class="shape-preview" aria-hidden="true">
+            <svg viewBox="0 0 120 120" width="92" height="92">
+              <polygon points="60,18 102,96 18,96" fill="#2563eb"></polygon>
+            </svg>
+          </div>
+        </label>
+
+        <label class="shape-option" data-shape="circle">
+          <input type="radio" name="shape" value="circle" />
+          <div class="shape-preview" aria-hidden="true">
+            <svg viewBox="0 0 120 120" width="92" height="92">
+              <circle cx="60" cy="60" r="40" fill="#dc2626"></circle>
+            </svg>
+          </div>
+        </label>
+
+        <label class="shape-option" data-shape="square">
+          <input type="radio" name="shape" value="square" />
+          <div class="shape-preview" aria-hidden="true">
+            <svg viewBox="0 0 120 120" width="92" height="92">
+              <rect x="22" y="22" width="76" height="76" fill="#16a34a"></rect>
+            </svg>
+          </div>
+        </label>
+
+        <div class="feature-box" id="featureBox"></div>
+        <div class="info-box">
+          <strong>Features</strong><br>
+          E1 = Ecken-Anteil<br>
+          E2 = Rundheits-Anteil<br>
+          E3 = Symmetrie / gleichmäßige Kanten
+        </div>
+      </div>
+
+      <div class="panel network-panel">
+        <svg viewBox="0 0 760 460" aria-label="Neuronales Netz">
+          <line id="e1" class="edge" x1="110" y1="105" x2="320" y2="80"></line>
+          <line id="e2" class="edge" x1="110" y1="105" x2="320" y2="170"></line>
+          <line id="e3" class="edge" x1="110" y1="105" x2="320" y2="260"></line>
+          <line id="e4" class="edge" x1="110" y1="105" x2="320" y2="350"></line>
+          <line id="e5" class="edge" x1="110" y1="225" x2="320" y2="80"></line>
+          <line id="e6" class="edge" x1="110" y1="225" x2="320" y2="170"></line>
+          <line id="e7" class="edge" x1="110" y1="225" x2="320" y2="260"></line>
+          <line id="e8" class="edge" x1="110" y1="225" x2="320" y2="350"></line>
+          <line id="e9" class="edge" x1="110" y1="345" x2="320" y2="80"></line>
+          <line id="e10" class="edge" x1="110" y1="345" x2="320" y2="170"></line>
+          <line id="e11" class="edge" x1="110" y1="345" x2="320" y2="260"></line>
+          <line id="e12" class="edge" x1="110" y1="345" x2="320" y2="350"></line>
+
+          <line id="e13" class="edge" x1="350" y1="80" x2="600" y2="110"></line>
+          <line id="e14" class="edge" x1="350" y1="80" x2="600" y2="225"></line>
+          <line id="e15" class="edge" x1="350" y1="80" x2="600" y2="340"></line>
+          <line id="e16" class="edge" x1="350" y1="170" x2="600" y2="110"></line>
+          <line id="e17" class="edge" x1="350" y1="170" x2="600" y2="225"></line>
+          <line id="e18" class="edge" x1="350" y1="170" x2="600" y2="340"></line>
+          <line id="e19" class="edge" x1="350" y1="260" x2="600" y2="110"></line>
+          <line id="e20" class="edge" x1="350" y1="260" x2="600" y2="225"></line>
+          <line id="e21" class="edge" x1="350" y1="260" x2="600" y2="340"></line>
+          <line id="e22" class="edge" x1="350" y1="350" x2="600" y2="110"></line>
+          <line id="e23" class="edge" x1="350" y1="350" x2="600" y2="225"></line>
+          <line id="e24" class="edge" x1="350" y1="350" x2="600" y2="340"></line>
+
+          <circle id="n1" class="node" cx="85" cy="105" r="26"></circle>
+          <circle id="n2" class="node" cx="85" cy="225" r="26"></circle>
+          <circle id="n3" class="node" cx="85" cy="345" r="26"></circle>
+          <circle id="n4" class="node" cx="335" cy="80" r="26"></circle>
+          <circle id="n5" class="node" cx="335" cy="170" r="26"></circle>
+          <circle id="n6" class="node" cx="335" cy="260" r="26"></circle>
+          <circle id="n7" class="node" cx="335" cy="350" r="26"></circle>
+          <circle id="n8" class="node" cx="625" cy="110" r="26"></circle>
+          <circle id="n9" class="node" cx="625" cy="225" r="26"></circle>
+          <circle id="n10" class="node" cx="625" cy="340" r="26"></circle>
+
+          <text x="54" y="48" font-size="18" font-weight="bold" fill="#475569">Eingabe</text>
+          <text x="292" y="48" font-size="18" font-weight="bold" fill="#475569">Hidden</text>
+          <text x="588" y="48" font-size="18" font-weight="bold" fill="#475569">Softmax</text>
+
+          <text x="38" y="110" font-size="12" font-weight="bold" fill="#0f172a">E1</text>
+          <text x="38" y="230" font-size="12" font-weight="bold" fill="#0f172a">E2</text>
+          <text x="38" y="350" font-size="12" font-weight="bold" fill="#0f172a">E3</text>
+          <text x="611" y="115" font-size="12" font-weight="bold" fill="#0f172a">T</text>
+          <text x="611" y="230" font-size="12" font-weight="bold" fill="#0f172a">K</text>
+          <text x="610" y="345" font-size="12" font-weight="bold" fill="#0f172a">Q</text>
+
+          <text id="v-n1" x="68" y="145" font-size="11" fill="#0f172a">0.00</text>
+          <text id="v-n2" x="68" y="265" font-size="11" fill="#0f172a">0.00</text>
+          <text id="v-n3" x="68" y="385" font-size="11" fill="#0f172a">0.00</text>
+          <text id="v-n4" x="318" y="120" font-size="11" fill="#0f172a">0.50</text>
+          <text id="v-n5" x="318" y="210" font-size="11" fill="#0f172a">0.50</text>
+          <text id="v-n6" x="318" y="300" font-size="11" fill="#0f172a">0.50</text>
+          <text id="v-n7" x="318" y="390" font-size="11" fill="#0f172a">0.50</text>
+          <text id="v-n8" x="607" y="150" font-size="11" fill="#0f172a">0.33</text>
+          <text id="v-n9" x="607" y="265" font-size="11" fill="#0f172a">0.33</text>
+          <text id="v-n10" x="607" y="380" font-size="11" fill="#0f172a">0.33</text>
+
+          <text id="w-e1" x="198" y="82" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e2" x="198" y="122" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e3" x="198" y="173" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e4" x="198" y="225" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e5" x="198" y="146" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e6" x="198" y="198" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e7" x="198" y="242" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e8" x="198" y="290" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e9" x="198" y="248" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e10" x="198" y="292" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e11" x="198" y="336" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e12" x="198" y="380" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e13" x="472" y="86" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e14" x="472" y="155" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e15" x="472" y="225" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e16" x="472" y="134" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e17" x="472" y="200" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e18" x="472" y="270" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e19" x="472" y="180" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e20" x="472" y="245" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e21" x="472" y="314" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e22" x="472" y="270" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e23" x="472" y="334" font-size="11" fill="#0f172a">0.00</text>
+          <text id="w-e24" x="472" y="396" font-size="11" fill="#0f172a">0.00</text>
+        </svg>
+        <div class="legend">Kreise = Aktivierungen. Linien = Gewichte. Grüne Gewichte fördern, rote Gewichte hemmen. Die drei Ausgabewerte werden per Softmax in Wahrscheinlichkeiten umgerechnet.</div>
+      </div>
+
+      <div class="panel right-panel">
+        <div id="out-triangle" class="output-item">Dreieck<small>Output T</small></div>
+        <div id="out-circle" class="output-item">Kreis<small>Output K</small></div>
+        <div id="out-square" class="output-item">Quadrat<small>Output Q</small></div>
+
+        <div class="metrics" id="metricsBox"></div>
+
+        <div class="metrics">
+          <strong>Wahrscheinlichkeiten</strong>
+          <div class="prob-row">
+            <div>Dreieck: <span id="pTriangle">33.3%</span></div>
+            <div class="prob-bar"><div id="barTriangle" class="prob-fill"></div></div>
+            <div>Kreis: <span id="pCircle">33.3%</span></div>
+            <div class="prob-bar"><div id="barCircle" class="prob-fill"></div></div>
+            <div>Quadrat: <span id="pSquare">33.3%</span></div>
+            <div class="prob-bar"><div id="barSquare" class="prob-fill"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom" style="flex-direction: column; gap: 14px; align-items: center;">
+      <div class="temperature-wrap">
+        <div id="tempLabel">Temperatur: 1.0</div>
+        <input id="tempSlider" type="range" min="0.2" max="3" step="0.1" value="1" />
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
+        <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: #334155; background: white; padding: 10px 14px; border-radius: 999px; border: 1px solid #e5e7eb;">
+          <input id="modeToggle" type="checkbox" />
+          Sampling-Modus
+        </label>
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+        <button id="train1Btn" type="button">1× trainieren</button>
+        <button id="train10Btn" type="button">10× trainieren</button>
+        <button id="train100Btn" type="button">100× trainieren</button>
+      </div>
+      <div>
+        <button id="recognizeBtn" type="button">Erkennen</button>
+      </div>
+    </div>
+    <div id="status" class="status">Das Netz startet untrainiert. Durch Training werden Gewichte und Bias-Werte per Gradientenabstieg angepasst.</div>
+  </div>
+
+  <script>
+    const options = document.querySelectorAll('.shape-option');
+    const radios = document.querySelectorAll('input[name="shape"]');
+    const statusEl = document.getElementById('status');
+    const recognizeBtn = document.getElementById('recognizeBtn');
+    const train1Btn = document.getElementById('train1Btn');
+    const train10Btn = document.getElementById('train10Btn');
+    const train100Btn = document.getElementById('train100Btn');
+    const featureBox = document.getElementById('featureBox');
+    const metricsBox = document.getElementById('metricsBox');
+    const tempSlider = document.getElementById('tempSlider');
+    const tempLabel = document.getElementById('tempLabel');
+    const modeToggle = document.getElementById('modeToggle');
+
+    let temperature = 1.0;
+    let useSampling = false;
+
+    const nodeIds = ['n1','n2','n3','n4','n5','n6','n7','n8','n9','n10'];
+    const edgeIds = Array.from({ length: 24 }, (_, i) => `e${i + 1}`);
+
+    const samples = {
+      triangle: { x: [1.00, 0.05, 0.72], y: [1, 0, 0] },
+      circle:   { x: [0.00, 1.00, 0.98], y: [0, 1, 0] },
+      square:   { x: [0.82, 0.12, 0.98], y: [0, 0, 1] }
+    };
+
+    const net = {
+      lr: 0.18,
+      trainCount: 0,
+      wIH: [
+        [0.06, -0.03, 0.05, 0.02],
+        [-0.04, 0.05, 0.02, 0.03],
+        [0.01, 0.02, -0.02, 0.04]
+      ],
+      bH: [0, 0, 0, 0],
+      wHO: [
+        [0.05, -0.03, 0.01],
+        [-0.02, 0.04, 0.01],
+        [0.03, 0.01, -0.02],
+        [0.02, 0.01, 0.03]
+      ],
+      bO: [0, 0, 0]
+    };
+
+    function sigmoid(x) {
+      return 1 / (1 + Math.exp(-x));
+    }
+
+    function dsigmoidFromActivated(y) {
+      return y * (1 - y);
+    }
+
+    function softmax(logits, temp = 1.0) {
+      const t = Math.max(temp, 0.05);
+      const scaled = logits.map(v => v / t);
+      const maxLogit = Math.max(...scaled);
+      const exps = scaled.map(v => Math.exp(v - maxLogit));
+      const sum = exps.reduce((a, b) => a + b, 0);
+      return exps.map(v => v / sum);
+    }
+
+    function forward(input, temp = temperature) {
+      const hiddenRaw = [0, 0, 0, 0];
+      const hidden = [0, 0, 0, 0];
+      const logits = [0, 0, 0];
+
+      for (let j = 0; j < 4; j++) {
+        hiddenRaw[j] = net.bH[j];
+        for (let i = 0; i < 3; i++) hiddenRaw[j] += input[i] * net.wIH[i][j];
+        hidden[j] = sigmoid(hiddenRaw[j]);
+      }
+
+      for (let k = 0; k < 3; k++) {
+        logits[k] = net.bO[k];
+        for (let j = 0; j < 4; j++) logits[k] += hidden[j] * net.wHO[j][k];
+      }
+
+      const probs = softmax(logits, temp);
+      return { input, hiddenRaw, hidden, logits, probs };
+    }
+
+    function trainOneSample(sample) {
+      const { input, hidden, probs } = forward(sample.x, 1.0);
+      const target = sample.y;
+
+      const dLogits = [0, 0, 0];
+      for (let k = 0; k < 3; k++) dLogits[k] = probs[k] - target[k];
+
+      const hiddenDelta = [0, 0, 0, 0];
+      for (let j = 0; j < 4; j++) {
+        let sum = 0;
+        for (let k = 0; k < 3; k++) sum += net.wHO[j][k] * dLogits[k];
+        hiddenDelta[j] = sum * dsigmoidFromActivated(hidden[j]);
+      }
+
+      for (let j = 0; j < 4; j++) {
+        for (let k = 0; k < 3; k++) {
+          net.wHO[j][k] -= net.lr * hidden[j] * dLogits[k];
+        }
+      }
+
+      for (let k = 0; k < 3; k++) net.bO[k] -= net.lr * dLogits[k];
+
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 4; j++) {
+          net.wIH[i][j] -= net.lr * input[i] * hiddenDelta[j];
+        }
+      }
+
+      for (let j = 0; j < 4; j++) net.bH[j] -= net.lr * hiddenDelta[j];
+    }
+
+    function trainNetwork(iterations) {
+      const order = ['triangle', 'circle', 'square'];
+      for (let i = 0; i < iterations; i++) {
+        for (const name of order) trainOneSample(samples[name]);
+        net.trainCount++;
+      }
+      updateVisuals();
+      statusEl.textContent = `Training abgeschlossen (${iterations}×).`;
+    }
+
+    function updateSelectedCard() {
+      options.forEach(option => {
+        const radio = option.querySelector('input');
+        option.classList.toggle('selected', radio.checked);
+      });
+      renderSelectedFeatures();
+      updateVisuals();
+    }
+
+    radios.forEach(radio => radio.addEventListener('change', updateSelectedCard));
+
+    function renderSelectedFeatures() {
+      const selected = document.querySelector('input[name="shape"]:checked').value;
+      const x = samples[selected].x;
+      featureBox.innerHTML = `<strong>Eingabefeatures des ausgewählten Bildes</strong><br>
+        E1: ${x[0].toFixed(2)}<br>
+        E2: ${x[1].toFixed(2)}<br>
+        E3: ${x[2].toFixed(2)}`;
+    }
+
+    function argmax(values) {
+      return values.indexOf(Math.max(...values));
+    }
+
+    function resetHighlights() {
+      nodeIds.forEach(id => document.getElementById(id).classList.remove('active', 'output-active'));
+      edgeIds.forEach(id => document.getElementById(id).classList.remove('active', 'strong', 'negative'));
+      ['out-triangle','out-circle','out-square'].forEach(id => document.getElementById(id).classList.remove('active'));
+    }
+
+    function setNodeValue(id, value) {
+      document.getElementById(`v-${id}`).textContent = value.toFixed(2);
+    }
+
+    function setEdgeWeight(id, value) {
+      const el = document.getElementById(id);
+      document.getElementById(`w-${id}`).textContent = value.toFixed(2);
+      el.classList.remove('strong', 'negative');
+      if (value > 0.25) el.classList.add('strong');
+      if (value < -0.12) el.classList.add('negative');
+    }
+
+    function updateProbabilityBars(probs) {
+      const t = `${(probs[0] * 100).toFixed(1)}%`;
+      const k = `${(probs[1] * 100).toFixed(1)}%`;
+      const q = `${(probs[2] * 100).toFixed(1)}%`;
+      document.getElementById('pTriangle').textContent = t;
+      document.getElementById('pCircle').textContent = k;
+      document.getElementById('pSquare').textContent = q;
+      document.getElementById('barTriangle').style.width = t;
+      document.getElementById('barCircle').style.width = k;
+      document.getElementById('barSquare').style.width = q;
+    }
+
+    function updateVisuals() {
+      resetHighlights();
+      const selected = document.querySelector('input[name="shape"]:checked').value;
+      const result = forward(samples[selected].x, temperature);
+
+      setNodeValue('n1', result.input[0]);
+      setNodeValue('n2', result.input[1]);
+      setNodeValue('n3', result.input[2]);
+      setNodeValue('n4', result.hidden[0]);
+      setNodeValue('n5', result.hidden[1]);
+      setNodeValue('n6', result.hidden[2]);
+      setNodeValue('n7', result.hidden[3]);
+      setNodeValue('n8', result.probs[0]);
+      setNodeValue('n9', result.probs[1]);
+      setNodeValue('n10', result.probs[2]);
+
+      const ihMap = ['e1','e2','e3','e4','e5','e6','e7','e8','e9','e10','e11','e12'];
+      let idx = 0;
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 4; j++) {
+          setEdgeWeight(ihMap[idx], net.wIH[i][j]);
+          idx++;
+        }
+      }
+
+      const hoMap = ['e13','e14','e15','e16','e17','e18','e19','e20','e21','e22','e23','e24'];
+      idx = 0;
+      for (let j = 0; j < 4; j++) {
+        for (let k = 0; k < 3; k++) {
+          setEdgeWeight(hoMap[idx], net.wHO[j][k]);
+          idx++;
+        }
+      }
+
+      const labels = ['Dreieck', 'Kreis', 'Quadrat'];
+      const predictedIdx = argmax(result.probs);
+      updateProbabilityBars(result.probs);
+      metricsBox.innerHTML = `
+        <strong>Netzzustand</strong><br>
+        Trainingsdurchläufe: ${net.trainCount}<br>
+        Temperatur: ${temperature.toFixed(1)}<br>
+        Modus: ${useSampling ? 'Sampling' : 'Argmax'}<br>
+        Logits: [${result.logits.map(v => v.toFixed(2)).join(', ')}]<br>
+        Softmax: [${result.probs.map(v => v.toFixed(3)).join(', ')}]<br>
+        Vorhersage: ${labels[predictedIdx]}`;
+    }
+
+    async function runRecognition() {
+      const selected = document.querySelector('input[name="shape"]:checked').value;
+      const result = forward(samples[selected].x, temperature);
+      updateVisuals();
+
+      ['n1','n2','n3'].forEach(id => document.getElementById(id).classList.add('active'));
+      ['e1','e2','e3','e4','e5','e6','e7','e8','e9','e10','e11','e12'].forEach(id => document.getElementById(id).classList.add('active'));
+      statusEl.textContent = 'Die Eingabefeatures werden in die Hidden-Schicht projiziert.';
+      await new Promise(resolve => setTimeout(resolve, 350));
+
+      ['n4','n5','n6','n7'].forEach(id => document.getElementById(id).classList.add('active'));
+      ['e13','e14','e15','e16','e17','e18','e19','e20','e21','e22','e23','e24'].forEach(id => document.getElementById(id).classList.add('active'));
+      statusEl.textContent = 'Softmax berechnet Wahrscheinlichkeiten unter Berücksichtigung der Temperatur.';
+      await new Promise(resolve => setTimeout(resolve, 350));
+
+      const labels = ['Dreieck', 'Kreis', 'Quadrat'];
+      let predictedIdx = argmax(result.probs);
+
+      if (useSampling) {
+        const r = Math.random();
+        let sum = 0;
+        predictedIdx = result.probs.length - 1;
+        for (let i = 0; i < result.probs.length; i++) {
+          sum += result.probs[i];
+          if (r <= sum) {
+            predictedIdx = i;
+            break;
+          }
+        }
+        statusEl.textContent = `Sampling-Modus aktiv (Temperatur=${temperature.toFixed(1)})`;
+      } else {
+        statusEl.textContent = `Argmax-Modus aktiv (Temperatur=${temperature.toFixed(1)})`;
+      }
+
+      const outNodeIds = ['n8', 'n9', 'n10'];
+      const outCardIds = ['out-triangle', 'out-circle', 'out-square'];
+      document.getElementById(outNodeIds[predictedIdx]).classList.add('output-active');
+      document.getElementById(outCardIds[predictedIdx]).classList.add('active');
+
+      statusEl.textContent += ` → Ergebnis: ${labels[predictedIdx]}`;
+    }
+
+    tempSlider.addEventListener('input', () => {
+      temperature = parseFloat(tempSlider.value);
+      tempLabel.textContent = `Temperatur: ${temperature.toFixed(1)}`;
+      updateVisuals();
+    });
+
+    modeToggle.addEventListener('change', () => {
+      useSampling = modeToggle.checked;
+      updateVisuals();
+    });
+
+    train1Btn.addEventListener('click', () => trainNetwork(1));
+    train10Btn.addEventListener('click', () => trainNetwork(10));
+    train100Btn.addEventListener('click', () => trainNetwork(100));
+    recognizeBtn.addEventListener('click', runRecognition);
+
+    updateSelectedCard();
+    updateVisuals();
+  </script>
+</body>
+</html>
