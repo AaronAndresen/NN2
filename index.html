@@ -187,6 +187,110 @@
       width: 0%;
       transition: width 0.3s ease;
     }
+
+    .mode-switch {
+      position: relative;
+      display: flex;
+      background: #1e293b;
+      border-radius: 999px;
+      padding: 4px;
+      width: 240px;
+      justify-content: space-between;
+      gap: 4px;
+    }
+    .mode-btn {
+      flex: 1;
+      background: transparent;
+      color: #cbd5f5;
+      border: none;
+      padding: 8px 0;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      z-index: 2;
+      transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: none;
+    }
+    .mode-btn.active {
+      color: white;
+      background: #2563eb;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+    }
+    .mode-btn.sampling-active {
+      background: #f59e0b;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.28);
+    }
+    .mode-indicator {
+      display: none;
+    }
+    .mode-description-wrap {
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin-top: 8px;
+    }
+    .output-item.flicker {
+      animation: flickerPulse 0.16s linear 6 alternate;
+    }
+    @keyframes flickerPulse {
+      from {
+        transform: scale(1.01);
+        opacity: 0.55;
+        box-shadow: 0 0 0 rgba(245, 158, 11, 0);
+      }
+      to {
+        transform: scale(1.04);
+        opacity: 1;
+        box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.10);
+      }
+    }
+    .mode-btn {
+      flex: 1;
+      background: transparent;
+      color: #cbd5f5;
+      border: none;
+      padding: 8px 0;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      z-index: 2;
+      transition: color 0.2s ease;
+    }
+    .mode-btn.active { color: white; }
+    .mode-indicator {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: calc(50% - 4px);
+      height: calc(100% - 8px);
+      background: #2563eb;
+      border-radius: 999px;
+      transition: background 0.25s ease;
+      z-index: 1;
+    }
+    .mode-description-wrap {
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .output-item.flicker {
+      animation: flickerPulse 0.22s ease-in-out 4 alternate;
+    }
+    @keyframes flickerPulse {
+      from {
+        transform: scale(1);
+        opacity: 0.72;
+        filter: saturate(0.85);
+      }
+      to {
+        transform: scale(1.03);
+        opacity: 1;
+        filter: saturate(1.15);
+      }
+    }
     @media (max-width: 1020px) {
       .layout { grid-template-columns: 1fr; }
       .panel { min-height: auto; }
@@ -238,6 +342,18 @@
       </div>
 
       <div class="panel network-panel">
+        <div style="margin-bottom:12px; display:flex; flex-direction:column; align-items:center; width:100%;">
+          <div id="modeSwitch" class="mode-switch">
+            <div class="mode-indicator" id="modeIndicator"></div>
+            <button id="modeArgmax" class="mode-btn active">Argmax</button>
+            <button id="modeSampling" class="mode-btn">Sampling</button>
+          </div>
+          <div class="mode-description-wrap">
+            <div id="modeDescription" style="font-size:12px; color:#475569; text-align:center;">
+              Deterministisch: immer die wahrscheinlichste Klasse
+            </div>
+          </div>
+        </div>
         <svg viewBox="0 0 760 460" aria-label="Neuronales Netz">
           <line id="e1" class="edge" x1="110" y1="105" x2="320" y2="80"></line>
           <line id="e2" class="edge" x1="110" y1="105" x2="320" y2="170"></line>
@@ -278,7 +394,7 @@
 
           <text x="85" y="48" text-anchor="middle" font-size="18" font-weight="bold" fill="#475569">Eingabe</text>
           <text x="335" y="48" text-anchor="middle" font-size="18" font-weight="bold" fill="#475569">Hidden</text>
-          <text x="625" y="48" text-anchor="middle" font-size="18" font-weight="bold" fill="#475569">Softmax</text>
+          <text x="625" y="48" text-anchor="middle" font-size="18" font-weight="bold" fill="#475569">Ausgabe</text>
 
           <text x="38" y="110" font-size="12" font-weight="bold" fill="#0f172a">E1</text>
           <text x="38" y="230" font-size="12" font-weight="bold" fill="#0f172a">E2</text>
@@ -287,41 +403,41 @@
           <text x="625" y="230" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">K</text>
           <text x="625" y="345" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">Q</text>
 
-          <text id="v-n1" x="68" y="145" font-size="11" fill="#0f172a">0.00</text>
-          <text id="v-n2" x="68" y="265" font-size="11" fill="#0f172a">0.00</text>
-          <text id="v-n3" x="68" y="385" font-size="11" fill="#0f172a">0.00</text>
-          <text id="v-n4" x="318" y="120" font-size="11" fill="#0f172a">0.50</text>
-          <text id="v-n5" x="318" y="210" font-size="11" fill="#0f172a">0.50</text>
-          <text id="v-n6" x="318" y="300" font-size="11" fill="#0f172a">0.50</text>
-          <text id="v-n7" x="318" y="390" font-size="11" fill="#0f172a">0.50</text>
-          <text id="v-n8" x="607" y="150" font-size="11" fill="#0f172a">0.33</text>
-          <text id="v-n9" x="607" y="265" font-size="11" fill="#0f172a">0.33</text>
-          <text id="v-n10" x="607" y="380" font-size="11" fill="#0f172a">0.33</text>
+          <text id="v-n1" x="85" y="145" text-anchor="middle" font-size="11" fill="#0f172a">0.00</text>
+          <text id="v-n2" x="85" y="265" text-anchor="middle" font-size="11" fill="#0f172a">0.00</text>
+          <text id="v-n3" x="85" y="385" text-anchor="middle" font-size="11" fill="#0f172a">0.00</text>
+          <text id="v-n4" x="335" y="120" text-anchor="middle" font-size="11" fill="#0f172a">0.50</text>
+          <text id="v-n5" x="335" y="210" text-anchor="middle" font-size="11" fill="#0f172a">0.50</text>
+          <text id="v-n6" x="335" y="300" text-anchor="middle" font-size="11" fill="#0f172a">0.50</text>
+          <text id="v-n7" x="335" y="390" text-anchor="middle" font-size="11" fill="#0f172a">0.50</text>
+          <text id="v-n8" x="625" y="150" text-anchor="middle" font-size="11" fill="#0f172a">0.33</text>
+          <text id="v-n9" x="625" y="265" text-anchor="middle" font-size="11" fill="#0f172a">0.33</text>
+          <text id="v-n10" x="625" y="380" text-anchor="middle" font-size="11" fill="#0f172a">0.33</text>
 
-          <text id="w-e1" class="weight-label" x="205" y="68">0.00</text>
-          <text id="w-e2" class="weight-label" x="218" y="118">0.00</text>
-          <text id="w-e3" class="weight-label" x="222" y="172">0.00</text>
-          <text id="w-e4" class="weight-label" x="224" y="228">0.00</text>
-          <text id="w-e5" class="weight-label" x="170" y="136">0.00</text>
-          <text id="w-e6" class="weight-label" x="180" y="188">0.00</text>
-          <text id="w-e7" class="weight-label" x="186" y="245">0.00</text>
-          <text id="w-e8" class="weight-label" x="194" y="300">0.00</text>
-          <text id="w-e9" class="weight-label" x="152" y="246">0.00</text>
-          <text id="w-e10" class="weight-label" x="162" y="295">0.00</text>
-          <text id="w-e11" class="weight-label" x="172" y="345">0.00</text>
-          <text id="w-e12" class="weight-label" x="185" y="394">0.00</text>
-          <text id="w-e13" class="weight-label" x="456" y="84">0.00</text>
-          <text id="w-e14" class="weight-label" x="442" y="147">0.00</text>
-          <text id="w-e15" class="weight-label" x="430" y="206">0.00</text>
-          <text id="w-e16" class="weight-label" x="470" y="145">0.00</text>
-          <text id="w-e17" class="weight-label" x="464" y="201">0.00</text>
-          <text id="w-e18" class="weight-label" x="458" y="258">0.00</text>
-          <text id="w-e19" class="weight-label" x="488" y="206">0.00</text>
-          <text id="w-e20" class="weight-label" x="486" y="252">0.00</text>
-          <text id="w-e21" class="weight-label" x="482" y="307">0.00</text>
-          <text id="w-e22" class="weight-label" x="510" y="273">0.00</text>
-          <text id="w-e23" class="weight-label" x="510" y="326">0.00</text>
-          <text id="w-e24" class="weight-label" x="510" y="381">0.00</text>
+          <text id="w-e1" class="weight-label" x="206" y="84">0.00</text>
+          <text id="w-e2" class="weight-label" x="212" y="126">0.00</text>
+          <text id="w-e3" class="weight-label" x="214" y="172">0.00</text>
+          <text id="w-e4" class="weight-label" x="218" y="220">0.00</text>
+          <text id="w-e5" class="weight-label" x="188" y="136">0.00</text>
+          <text id="w-e6" class="weight-label" x="192" y="188">0.00</text>
+          <text id="w-e7" class="weight-label" x="197" y="240">0.00</text>
+          <text id="w-e8" class="weight-label" x="202" y="292">0.00</text>
+          <text id="w-e9" class="weight-label" x="172" y="260">0.00</text>
+          <text id="w-e10" class="weight-label" x="179" y="307">0.00</text>
+          <text id="w-e11" class="weight-label" x="185" y="352">0.00</text>
+          <text id="w-e12" class="weight-label" x="192" y="396">0.00</text>
+          <text id="w-e13" class="weight-label" x="470" y="92">0.00</text>
+          <text id="w-e14" class="weight-label" x="456" y="138">0.00</text>
+          <text id="w-e15" class="weight-label" x="442" y="182">0.00</text>
+          <text id="w-e16" class="weight-label" x="486" y="150">0.00</text>
+          <text id="w-e17" class="weight-label" x="474" y="200">0.00</text>
+          <text id="w-e18" class="weight-label" x="462" y="248">0.00</text>
+          <text id="w-e19" class="weight-label" x="500" y="212">0.00</text>
+          <text id="w-e20" class="weight-label" x="492" y="256">0.00</text>
+          <text id="w-e21" class="weight-label" x="484" y="300">0.00</text>
+          <text id="w-e22" class="weight-label" x="516" y="286">0.00</text>
+          <text id="w-e23" class="weight-label" x="512" y="332">0.00</text>
+          <text id="w-e24" class="weight-label" x="508" y="378">0.00</text>
         </svg>
         <div style="margin-top: 12px; display: flex; justify-content: center; width: 100%;">
           <button id="recognizeBtn" type="button">Erkennen</button>
@@ -356,10 +472,7 @@
         <input id="tempSlider" type="range" min="0.2" max="3" step="0.1" value="1" />
       </div>
       <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
-        <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: #334155; background: white; padding: 10px 14px; border-radius: 999px; border: 1px solid #e5e7eb;">
-          <input id="modeToggle" type="checkbox" />
-          Sampling-Modus
-        </label>
+        
       </div>
       <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
         <button id="train1Btn" type="button">1× trainieren</button>
@@ -385,7 +498,10 @@
     const metricsBox = document.getElementById('metricsBox');
     const tempSlider = document.getElementById('tempSlider');
     const tempLabel = document.getElementById('tempLabel');
-    const modeToggle = document.getElementById('modeToggle');
+    const modeArgmaxBtn = document.getElementById('modeArgmax');
+    const modeSamplingBtn = document.getElementById('modeSampling');
+    const modeIndicator = document.getElementById('modeIndicator');
+    const modeDescription = document.getElementById('modeDescription');
 
     let temperature = 1.0;
     let useSampling = false;
@@ -639,6 +755,21 @@
       document.getElementById(outNodeIds[predictedIdx]).classList.add('output-active');
       document.getElementById(outCardIds[predictedIdx]).classList.add('active');
 
+      if (useSampling) {
+        const card = document.getElementById(outCardIds[predictedIdx]);
+        const node = document.getElementById(outNodeIds[predictedIdx]);
+        card.classList.remove('flicker');
+        node.classList.remove('flicker');
+        void card.offsetWidth;
+        void node.offsetWidth;
+        card.classList.add('flicker');
+        node.classList.add('flicker');
+        setTimeout(() => {
+          card.classList.remove('flicker');
+          node.classList.remove('flicker');
+        }, 1000);
+      }
+
       statusEl.textContent += ` → Ergebnis: ${labels[predictedIdx]}`;
     }
 
@@ -648,8 +779,19 @@
       updateVisuals();
     });
 
-    modeToggle.addEventListener('change', () => {
-      useSampling = modeToggle.checked;
+    modeArgmaxBtn.addEventListener('click', () => {
+      useSampling = false;
+      modeArgmaxBtn.classList.add('active');
+      modeSamplingBtn.classList.remove('active', 'sampling-active');
+      modeDescription.textContent = 'Deterministisch: immer die wahrscheinlichste Klasse';
+      updateVisuals();
+    });
+
+    modeSamplingBtn.addEventListener('click', () => {
+      useSampling = true;
+      modeSamplingBtn.classList.add('active', 'sampling-active');
+      modeArgmaxBtn.classList.remove('active');
+      modeDescription.textContent = 'Stochastisch: zufällige Auswahl basierend auf Wahrscheinlichkeiten';
       updateVisuals();
     });
 
